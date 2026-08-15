@@ -4,7 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/v/anysystem)](https://crates.io/crates/anysystem)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE-APACHE)
 [![License](https://img.shields.io/badge/license-MIT-blue?)](LICENSE-MIT)
-[![Build Status](https://github.com/systems-group/anysystem/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/systems-group/anysystem/actions?query=workflow%3ACI+branch%3Amain)
+[![Build Status](https://github.com/osukhoroslov/anysystem/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/osukhoroslov/anysystem/actions?query=workflow%3ACI+branch%3Amain)
 [![Documentation](https://img.shields.io/docsrs/anysystem)](https://docs.rs/anysystem)
 
 AnySystem is a framework for deterministic simulation and testing of distributed systems. It allows to model arbitrary systems represented as a set of _processes_ running on a set of _nodes_ connected by a _network_.
