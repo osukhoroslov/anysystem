@@ -248,7 +248,7 @@ pub mod prunes {
     /// Prunes states where some process has sent more messages than the given value.
     pub fn sent_messages_limit(max_allowed_messages: u64) -> PruneFn {
         boxed!(move |state: &McState| {
-            for (_, node) in state.node_states.iter() {
+            for node in state.node_states.values() {
                 for (proc_name, proc) in node.proc_states.iter() {
                     if proc.sent_message_count > max_allowed_messages {
                         return Some(format!("too many messages sent by {proc_name}"));

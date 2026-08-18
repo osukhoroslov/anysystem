@@ -36,9 +36,7 @@ impl PartialEq for ProcessEntryState {
     }
 }
 
-impl Eq for ProcessEntryState {
-    fn assert_receiver_is_total_eq(&self) {}
-}
+impl Eq for ProcessEntryState {}
 
 impl ProcessEntry {
     fn get_state(&self) -> Result<ProcessEntryState, String> {
@@ -242,20 +240,18 @@ impl McNode {
                         self.trace_handler.borrow_mut().push(log_entry);
                     }
                 }
-                ProcessEvent::TimerCancelled { name } => {
-                    if proc_entry.pending_timers.remove(&name).is_some() {
-                        let event = McEvent::TimerCancelled {
-                            timer: name.clone(),
-                            proc: proc.clone(),
-                        };
-                        new_events.push(event);
+                ProcessEvent::TimerCancelled { name } if proc_entry.pending_timers.remove(&name).is_some() => {
+                    let event = McEvent::TimerCancelled {
+                        timer: name.clone(),
+                        proc: proc.clone(),
+                    };
+                    new_events.push(event);
 
-                        let log_entry = LogEntry::McTimerCancelled {
-                            proc: proc.clone(),
-                            timer: name,
-                        };
-                        self.trace_handler.borrow_mut().push(log_entry);
-                    }
+                    let log_entry = LogEntry::McTimerCancelled {
+                        proc: proc.clone(),
+                        timer: name,
+                    };
+                    self.trace_handler.borrow_mut().push(log_entry);
                 }
                 _ => {}
             }
