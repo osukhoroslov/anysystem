@@ -39,8 +39,8 @@ impl Process for RetryPingClient {
     }
 
     fn on_timer(&mut self, timer: String, ctx: &mut Context) -> Result<(), String> {
-        if timer == "check-pong" && self.ping.is_some() {
-            ctx.send(self.ping.as_ref().unwrap().clone(), self.server.clone());
+        if let ("check-pong", Some(ping)) = (timer.as_str(), self.ping.as_ref()) {
+            ctx.send(ping.clone(), self.server.clone());
             ctx.set_timer("check-pong", 3.);
         }
         Ok(())

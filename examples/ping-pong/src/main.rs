@@ -81,10 +81,10 @@ fn main() {
     );
     tests.add("MC CONSECUTIVE MESSAGES", test_mc_consecutive_messages, config);
 
-    if args.test.is_none() {
-        tests.run();
+    if let Some(test) = args.test {
+        tests.run_test(&test.to_uppercase().replace('_', " "));
     } else {
-        tests.run_test(&args.test.unwrap().to_uppercase().replace('_', " "));
+        tests.run();
     }
 }
 
