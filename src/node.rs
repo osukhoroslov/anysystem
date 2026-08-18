@@ -71,7 +71,7 @@ pub enum ProcessEvent {
 
 #[derive(Clone)]
 /// Represents the internal state and metadata of a process.
-pub struct ProcessEntry {
+pub(crate) struct ProcessEntry {
     pub(crate) proc_impl: Box<dyn Process>,
     pub(crate) event_log: Vec<EventLogEntry>,
     pub(crate) local_outbox: Vec<Message>,
@@ -103,13 +103,13 @@ pub struct Node {
     /// Unique node name.
     pub name: String,
     /// Mapping from process names to their corresponding process entries.
-    pub processes: HashMap<String, ProcessEntry>,
+    processes: HashMap<String, ProcessEntry>,
     net: Rc<RefCell<Network>>,
     /// Difference between the node's clock and the simulation clock (in seconds).
-    pub clock_skew: f64,
+    clock_skew: f64,
     is_crashed: bool,
     /// Reference to the simulation context the node belongs to.
-    pub ctx: Rc<RefCell<SimulationContext>>,
+    ctx: Rc<RefCell<SimulationContext>>,
     logger: Rc<RefCell<Logger>>,
     local_message_count: u64,
 }
@@ -339,7 +339,7 @@ impl Node {
     }
 
     /// Processes a sequence of actions for a given process.
-    pub fn handle_process_actions(&mut self, proc: String, time: f64, actions: Vec<ProcessEvent>) {
+    fn handle_process_actions(&mut self, proc: String, time: f64, actions: Vec<ProcessEvent>) {
         for action in actions {
             let proc_entry = self.processes.get_mut(&proc).unwrap();
             proc_entry.event_log.push(EventLogEntry::new(time, action.clone()));
@@ -432,7 +432,7 @@ impl Node {
     }
 
     /// Logs a process error and returns a descriptive message.
-    pub fn handle_process_error(&self, err: String, proc: String) -> &str {
+    fn handle_process_error(&self, err: String, proc: String) -> &str {
         eprintln!(
             "{}",
             format!(

@@ -7,7 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## 0.1.2 (2024-09-13)
+## 0.2.0 (2026-08-18)
+
+### Added
+
+- Add the `Process::on_start` callback for Rust and Python processes.
+- Add `Message.get` and support `key in message` for Python messages.
+
+### Changed
+
+- Preserve insertion order in `System::process_names` and execution order in test results and failure output.
+- Upgrade PyO3 from 0.19 to 0.29 and update the Python bindings for the new API.
+- Align the Rust ping-pong example constructors with their Python counterparts.
+- Update project URLs for the repository move to `osukhoroslov/anysystem`.
+- Modernize the Rust toolchain, GitHub Actions, and dependency license checks used by CI.
+
+### Breaking
+
+- Make the Python `Process` class an enforced abstract base class and require implementations to define `on_start`.
+- Change `TestSuite::run` to return an `IndexMap` instead of a `BTreeMap`.
+- Change `PyProcessFactory::build` to use PyO3's `PyCallArgs` argument interface.
+
+## 0.1.2 (2025-09-13)
 
 ### Fixed
 
