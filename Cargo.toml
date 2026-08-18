@@ -1,6 +1,6 @@
 [package]
 name = "anysystem"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 description = "A framework for deterministic simulation and testing of distributed systems"
 readme = "readme.md"
@@ -9,7 +9,7 @@ repository = "https://github.com/osukhoroslov/anysystem"
 license = "MIT OR Apache-2.0"
 keywords = ["distributed-systems", "message-passing", "simulation", "testing", "model-checking"]
 categories = ["simulation", "development-tools::testing"]
-include = ["/src", "/python", "/tests", "/examples", "LICENSE*", "changelog.md"]
+include = ["/src", "/python/anysystem.py", "/tests", "/examples", "LICENSE*", "changelog.md"]
 
 [dependencies]
 simcore = "0.1"
