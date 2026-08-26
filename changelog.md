@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Restore docs.rs builds on current nightly Rust.
+
 ## 0.2.0 (2026-08-18)
 
 ### Added

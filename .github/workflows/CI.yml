@@ -27,11 +27,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@nightly
       - uses: Swatinem/rust-cache@v2
       - name: Run cargo doc
         env:
-          RUSTDOCFLAGS: "-D rustdoc::all"
+          RUSTDOCFLAGS: "--cfg docsrs -D rustdoc::all"
         run: cargo doc --workspace --lib --no-deps
 
   run-tests:
