@@ -1,6 +1,5 @@
 use rstest::rstest;
 use std::collections::HashSet;
-use std::env;
 use sugars::boxed;
 
 use anysystem::process::StringProcessState;
@@ -17,13 +16,11 @@ fn build_system(impl_file: &str) -> System {
     sys.add_node("server-node");
     sys.add_node("client-node");
 
-    let py_path = [env::current_dir().unwrap().to_str().unwrap(), "/python"].join("");
-    env::set_var("PYTHONPATH", py_path);
-    let impl_path = env::var("PYTHONPATH").unwrap() + "/../tests/python/" + impl_file;
+    let impl_path = format!("tests/python/{impl_file}");
 
-    let server_f = PyProcessFactory::new(impl_path.as_str(), "PingServer");
+    let server_f = PyProcessFactory::new(&impl_path, "PingServer");
     let server = boxed!(server_f.build(("server",), 12345));
-    let client_f = PyProcessFactory::new(impl_path.as_str(), "PingClient");
+    let client_f = PyProcessFactory::new(&impl_path, "PingClient");
     let client = boxed!(client_f.build(("client", "server"), 12345));
 
     sys.add_process("server", server, "server-node");
