@@ -1,6 +1,7 @@
-use std::env;
 use std::rc::Rc;
 
+use pyo3::prelude::*;
+use pyo3::types::PyModule;
 use serde::Serialize;
 
 use crate::{Message, Process, ProcessState, System};
@@ -22,7 +23,6 @@ struct EmptyMessage {}
 
 #[test]
 fn test_set_state() {
-    env::set_var("PYTHONPATH", "python");
     let (mut sys, proc_state) = build_system();
 
     // check that process stores valid data
@@ -35,4 +35,36 @@ fn test_set_state() {
     // check that process stores the same data as right after initialization
     sys.send_local_message("proc", Message::json("CHECK_STATE", &EmptyMessage {}));
     sys.step_until_no_events();
+}
+
+#[test]
+fn test_embedded_module_is_reused() {
+    Python::attach(|py| {
+        let first = PyProcessFactory::new("tests/python/process.py", "TestProcess");
+        let second = PyProcessFactory::new("tests/python/process.py", "TestProcess");
+
+        assert_eq!(first.msg_class.bind(py).as_ptr(), second.msg_class.bind(py).as_ptr());
+        assert_eq!(first.ctx_class.bind(py).as_ptr(), second.ctx_class.bind(py).as_ptr());
+
+        let fake_module = PyModule::new(py, "anysystem").unwrap();
+        PyModule::import(py, "sys")
+            .unwrap()
+            .getattr("modules")
+            .unwrap()
+            .set_item("anysystem", fake_module)
+            .unwrap();
+        let third = PyProcessFactory::new("tests/python/process.py", "TestProcess");
+
+        let module = PyModule::import(py, "anysystem").unwrap();
+        assert_eq!(
+            first.msg_class.bind(py).as_ptr(),
+            module.getattr("Message").unwrap().as_ptr()
+        );
+        assert_eq!(
+            first.ctx_class.bind(py).as_ptr(),
+            module.getattr("Context").unwrap().as_ptr()
+        );
+        assert_eq!(first.msg_class.bind(py).as_ptr(), third.msg_class.bind(py).as_ptr());
+        assert_eq!(first.ctx_class.bind(py).as_ptr(), third.ctx_class.bind(py).as_ptr());
+    });
 }

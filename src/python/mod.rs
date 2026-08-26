@@ -1,4 +1,14 @@
 //! Python integration.
+//!
+//! Python process implementations can import the AnySystem API directly:
+//!
+//! ```python
+//! from anysystem import Context, Message, Process
+//! ```
+//!
+//! The Python API module is embedded in the Rust crate and registered when
+//! [`PyProcessFactory`] loads a process implementation. No `PYTHONPATH`
+//! configuration or separate `anysystem.py` file is required at runtime.
 
 use std::ffi::CString;
 use std::fs;
@@ -6,7 +16,9 @@ use std::rc::Rc;
 
 use colored::Colorize;
 use pyo3::call::PyCallArgs;
+use pyo3::ffi::c_str;
 use pyo3::prelude::*;
+use pyo3::sync::PyOnceLock;
 use pyo3::types::{PyModule, PyString};
 
 use crate::process::StringProcessState;
@@ -14,6 +26,32 @@ use crate::{Context, Message, Process, ProcessState};
 
 #[cfg(test)]
 mod tests;
+
+static ANYSYSTEM_MODULE: PyOnceLock<Py<PyModule>> = PyOnceLock::new();
+
+fn anysystem_module(py: Python<'_>) -> &Bound<'_, PyModule> {
+    let module = ANYSYSTEM_MODULE.get_or_init(py, || {
+        let sys = PyModule::import(py, "sys").unwrap();
+        let modules = sys.getattr("modules").unwrap();
+        let _ = modules.del_item("anysystem");
+        PyModule::from_code(
+            py,
+            c_str!(include_str!("../../python/anysystem.py")),
+            c"anysystem.py",
+            c"anysystem",
+        )
+        .unwrap()
+        .unbind()
+    });
+    let module = module.bind(py);
+    PyModule::import(py, "sys")
+        .unwrap()
+        .getattr("modules")
+        .unwrap()
+        .set_item("anysystem", module)
+        .unwrap();
+    module
+}
 
 /// Creates instances of [`PyProcess`].
 pub struct PyProcessFactory {
@@ -32,10 +70,11 @@ impl PyProcessFactory {
         let impl_module = CString::new(impl_filename.replace(".py", "")).unwrap();
         let impl_filename = CString::new(impl_filename).unwrap();
         let classes = Python::attach(|py| -> (Py<PyAny>, Py<PyAny>, Py<PyAny>, Py<PyAny>) {
+            let anysystem_module = anysystem_module(py);
             let impl_module = PyModule::from_code(py, &impl_code, &impl_filename, &impl_module).unwrap();
             let proc_class = impl_module.getattr(impl_class).unwrap().into();
-            let msg_class = impl_module.getattr("Message").unwrap().into();
-            let ctx_class = impl_module.getattr("Context").unwrap().into();
+            let msg_class = anysystem_module.getattr("Message").unwrap().into();
+            let ctx_class = anysystem_module.getattr("Context").unwrap().into();
             let get_size_fun = get_size_fun(py);
             (proc_class, msg_class, ctx_class, get_size_fun)
         });

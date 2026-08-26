@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Embed the Python API module in the Rust crate so Python process implementations no longer require `PYTHONPATH` or a separate `anysystem.py` file at runtime.
+
 ### Fixed
 
 - Restore docs.rs builds on current nightly Rust.
