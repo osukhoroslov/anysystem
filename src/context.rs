@@ -118,6 +118,6 @@ impl Context {
     }
 
     pub(crate) fn actions(&mut self) -> Vec<ProcessEvent> {
-        self.actions.drain(..).collect()
+        std::mem::take(&mut self.actions)
     }
 }
