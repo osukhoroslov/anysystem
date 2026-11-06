@@ -1,12 +1,13 @@
 use std::rc::Rc;
 
+use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use serde::Serialize;
 
 use crate::{Message, Process, ProcessState, System};
 
-use crate::python::PyProcessFactory;
+use crate::python::{get_size_fun, PyProcessFactory};
 
 fn build_system() -> (System, Rc<dyn ProcessState>) {
     let mut sys = System::new(0);
@@ -67,4 +68,67 @@ fn test_embedded_module_is_reused() {
         assert_eq!(first.msg_class.bind(py).as_ptr(), third.msg_class.bind(py).as_ptr());
         assert_eq!(first.ctx_class.bind(py).as_ptr(), third.ctx_class.bind(py).as_ptr());
     });
+}
+
+fn check_memory_size(test: &str) {
+    Python::attach(|py| {
+        let module = PyModule::from_code(
+            py,
+            c_str!(include_str!("../../tests/python/memory.py")),
+            c"memory.py",
+            c"memory_tests",
+        )
+        .unwrap();
+        module.getattr(test).unwrap().call1((get_size_fun(py),)).unwrap();
+    });
+}
+
+#[test]
+fn test_array_memory_size() {
+    check_memory_size("check_array_storage");
+}
+
+#[test]
+fn test_array_memory_references() {
+    check_memory_size("check_array_references");
+}
+
+#[test]
+fn test_array_subclass_memory_size() {
+    check_memory_size("check_array_subclasses");
+}
+
+#[test]
+fn test_array_process_max_size() {
+    let factory = PyProcessFactory::new("tests/python/array_process.py", "ArrayProcess");
+    let mut process = factory.build((), 1);
+    process.set_max_size_freq(1);
+    let initial_size = process.max_size();
+    let expected_growth = Python::attach(|py| {
+        let module = PyModule::from_code(
+            py,
+            c_str!(include_str!("../../tests/python/memory.py")),
+            c"memory.py",
+            c"memory_tests",
+        )
+        .unwrap();
+        module
+            .getattr("array_growth")
+            .unwrap()
+            .call0()
+            .unwrap()
+            .extract::<u64>()
+            .unwrap()
+    });
+
+    let mut sys = System::new(0);
+    sys.add_node("node");
+    sys.add_process("proc", Box::new(process), "node");
+    sys.send_local_message("proc", Message::json("FILL", &EmptyMessage {}));
+    sys.step_until_no_events();
+    assert_eq!(sys.max_size("proc"), initial_size + expected_growth);
+
+    sys.send_local_message("proc", Message::json("CLEAR", &EmptyMessage {}));
+    sys.step_until_no_events();
+    assert_eq!(sys.max_size("proc"), initial_size + expected_growth);
 }

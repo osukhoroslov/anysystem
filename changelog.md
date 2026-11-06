@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Count Python `array.array` buffers without adding temporary element objects to process memory estimates.
+
 ## 0.3.0 (2026-08-27)
 
 ### Added
