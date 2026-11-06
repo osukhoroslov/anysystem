@@ -276,6 +276,7 @@ fn get_size_fun(py: Python) -> Py<PyAny> {
         py,
         c"
 # Adapted from https://github.com/bosswissam/pysize
+from array import array
 import sys
 import inspect
 
@@ -299,7 +300,9 @@ def get_size(obj, seen=None):
     if isinstance(obj, dict):
         size += sum((get_size(v, seen) for v in obj.values()))
         size += sum((get_size(k, seen) for k in obj.keys()))
-    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
+    # array.__sizeof__ already includes its buffer. Iteration creates temporary
+    # Python objects for its values, which are not part of the stored state.
+    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray, array)):
         try:
             size += sum((get_size(i, seen) for i in obj))
         except TypeError:
